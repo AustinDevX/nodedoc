@@ -1,0 +1,36 @@
+{
+  "name": "doc-pull",
+  "version": "1.0.0",
+  "description": "A simple command line tool for fetching nodejs documentation.",
+  "main": "src/run.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AustinDevX/doc-pull.git"
+  },
+  "keywords": [
+    "nodejs",
+    "documentation"
+  ],
+  "author": "AustinDevX",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AustinDevX/doc-pull/issues"
+  },
+  "homepage": "https://github.com/AustinDevX/doc-pull#readme",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "commander-plus": "0.0.6",
+    "html-to-text": "^2.1.0",
+    "htmlparser2": "^3.9.0",
+    "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "debug": "^2.2.0",
+    "mocha": "^2.4.5",
+    "sinon": "^1.17.4"
+  }
+}
