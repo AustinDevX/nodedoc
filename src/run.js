@@ -1,5 +1,4 @@
 #! /usr/bin/env node
-
 "use strict"
 
 const program   = require('commander-plus')
@@ -8,23 +7,32 @@ const fetch     = require('../lib/fetch').fetchDocumentation;
 const scanner   = require('../lib/scanner');
 const ext       = require('../lib/extractor');
 const format    = require('../lib/format');
+const misc      = require('../lib/misc');
 
 program
   .version('1.0.0')
-  .option('-c, --class <class>',  'Class to lookup')
-  .option('-m, --method <method>', 'Method to lookup')
-  .option('-e, --event <event>',  'Event to lookup')
-  .option('-d, --desc', 'Print the description')
+  .option('-m', '--method <name>',  'The method to search for')
+  .option('-e', '--event <name>',   'The event to search for')
   .parse(process.argv);
 
-let moduleName = program.args[0];
+let searchString = program.args[0].trim();
+//break down the search name into parts
+let search = misc.parseModuleName(searchString);
 
-let docs = fetch(moduleName);
+let docs = fetch(search.module).then( doc => {
+  let info = {
+    module: search.module,
+    //will be undefined if classname is undefined
+    class: search.class
+  }
+  return document(info, doc);
+});
+
 docs = docs.then((docs) => {
-  let moduleDocs = scanner.getModuleDocumentation(docs, moduleName).val;
+  let moduleDocs = scanner.getModuleDocumentation(docs.documentation, search.module).val;
 
-  if(program['class']) {
-    return scanner.getClassDocumentation(moduleDocs, program.class).val
+  if(search.class) {
+    return scanner.getClassDocumentation(moduleDocs, docs.class).val
   } else {
     return moduleDocs;
   }
