@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 "use strict"
 
-const program   = require('commander-plus')
+const program   = require('commander-plus');
 
 const fetch     = require('../lib/fetch').fetchDocumentation;
 const scanner   = require('../lib/scanner');
@@ -11,28 +11,21 @@ const misc      = require('../lib/misc');
 
 program
   .version('1.0.0')
-  .option('-m', '--method <name>',  'The method to search for')
-  .option('-e', '--event <name>',   'The event to search for')
+  .option('-m, --method <method>',  'The method to search for')
+  .option('-e, --event <event>',   'The event to search for')
   .parse(process.argv);
 
-let searchString = program.args[0].trim();
+let searchString = program.args[0];
 //break down the search name into parts
 let search = misc.parseModuleName(searchString);
 
-let docs = fetch(search.module).then( doc => {
-  let info = {
-    module: search.module,
-    //will be undefined if classname is undefined
-    class: search.class
-  }
-  return document(info, doc);
-});
+let docs = fetch(search.module);
 
 docs = docs.then((docs) => {
-  let moduleDocs = scanner.getModuleDocumentation(docs.documentation, search.module).val;
+  let moduleDocs = scanner.getModuleDocumentation(docs, search.module).val;
 
   if(search.class) {
-    return scanner.getClassDocumentation(moduleDocs, docs.class).val
+    return scanner.getClassDocumentation(moduleDocs, search.class).val
   } else {
     return moduleDocs;
   }
@@ -40,19 +33,36 @@ docs = docs.then((docs) => {
 
 if(program['event'] && !program['method']) {
   docs = docs.then((docs) => {
-    return scanner.getEventDocumentation(docs, program.event).val;
   });
+  return scanner.getEventDocumentation(docs, program.event).val;
 } else if(program['method'] && !program['event']) {
   docs = docs.then((docs) => {
     return scanner.getMethodDocumentation(docs, program.method).val;
   });
 }
 
-if(program.desc) {
-  docs = docs.then((docs) => {
-    let desc = ext.extractDescription(docs).val;
-    console.log(format.readable(desc));
-  });
-}
+docs = docs.then((doc) => {
+  if(doc.stabilityText) {
+    let info = `${doc.name} [${doc.stabilityText}]`;
+    if(doc.stability === 0) {
+      var title = format.deprecated(info);
+      console.log(`${title}`);
+      return;
+    } else {
+      var title = format.title(info);
+    }
+  } else {
+    var title = format.title(`${doc.name}`);
+  }
+  console.log(`${title}`);
+
+  if(program['method']) {
+    let usage = format.usage(doc.textRaw);
+    console.log(usage);
+  }
+
+  let desc = ext.extractDescription(doc).val;
+  console.log(format.readable(desc));
+});
 
 docs.catch(console.log);
